@@ -15,9 +15,33 @@ A modern, secure web application designed to automate the validation of financia
 
 ## System Architecture
 
-The application implements a Backend-for-Frontend (BFF) security pattern, ensuring all sensitive keys, files, and AI processing details remain protected on the server.
+The application is structured using a secure **Backend-for-Frontend (BFF)** pattern, separating client interactions from database management and third-party AI APIs. This ensures that sensitive credentials, raw files, and similarity checks remain isolated on the server.
 
 ![System Architecture](./static/images/architecture_diagram.png)
+
+### 1. Browser Client Side (User Interface)
+- **Glassmorphism Dashboard UI**: Structured in HTML5 and styled using responsive CSS tokens. Features dynamic dark-mode aesthetics, custom gradients, interactive drag-and-drop zones, and dynamic success/rejection checklists.
+- **main.js Controller**: Directs user upload streams, manages scanning beam animations, reads the CSRF token from the document metadata, injects it into headers, and parses verification reports. Dynamic DOM inserts strictly use `textContent` and `replaceChildren()` to safeguard against Cross-Site Scripting (XSS).
+
+### 2. Flask BFF Backend Security Layer
+- **app.py Web Framework**: Initiates session-based CSRF tokens, registers allowed file extensions (`.png`, `.jpg`, `.jpeg`, `.pdf`), checks size limitations, and exposes endpoints:
+  - `GET /` (Serves the dashboard console).
+  - `POST /upload` (Processes uploads through the verification pipeline).
+  - `GET /history` (Fetches past transactions).
+  - `POST /clear_database` (Resets submissions and cleans up uploads directory).
+- **CSRF Verification Filter**: Enforces matching token headers before permitting uploads or database clears.
+- **Size & Extension Guards**: Blocks uploads exceeding 5MB or containing unapproved file extensions.
+- **math_validator.py Audit Engine**: Re-calculates and verifies item sums against receipt subtotals, and subtotals + tax + tip + fees - discount against grand totals.
+- **duplicate_checker.py Matcher**: Connects to Vertex AI embedding APIs and computes cosine similarity against historic submissions.
+
+### 3. Google Cloud Vertex AI Platform Services
+- **Gemini 2.5 Flash API**: Invokes the generative AI model with structured prompts and schema configurations to parse receipt details and validate receipt format.
+- **multimodalembedding@001**: Generates 1408-dimensional visual vectors for receipt images.
+- **text-embedding-004**: Generates 768-dimensional text vectors for PDF documents.
+
+### 4. Local Storage Volume
+- **uploads/ Sandbox Folder**: Temporarily holds incoming receipt files renamed to unique UUIDs.
+- **submissions.csv Database**: Maintains an audit log of submissions, including metadata fields (id, timestamp, merchant_name, date, total, file_name, canonical_text, embedding_type) and the JSON-serialized vector embeddings.
 
 ---
 
