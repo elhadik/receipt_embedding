@@ -141,8 +141,9 @@ def upload_file():
         part = types.Part.from_bytes(data=file_bytes, mime_type=mime_type)
         config = types.GenerateContentConfig(response_mime_type="application/json")
         
+        model_name = os.environ.get('GEMINI_OCR_MODEL', 'gemini-2.5-flash')
         response = client.models.generate_content(
-            model='gemini-3.5-flash',
+            model=model_name,
             contents=[part, prompt],
             config=config
         )

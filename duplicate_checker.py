@@ -51,29 +51,31 @@ def get_receipt_canonical_text(receipt_data):
 
 def get_text_embedding(text):
     """
-    Generates text embedding using text-embedding-004.
+    Generates text embedding using the configured text embedding model.
     """
     client = get_genai_client()
+    model_name = os.environ.get("TEXT_EMBEDDING_MODEL", "text-embedding-004")
     response = client.models.embed_content(
-        model="text-embedding-004",
+        model=model_name,
         contents=text
     )
     embeddings = response.embeddings
     if not embeddings:
-        raise Exception("Failed to retrieve text embeddings from API")
+        raise Exception(f"Failed to retrieve text embeddings from API using model {model_name}")
     return embeddings[0].values
 
 def get_image_embedding(file_path):
     """
-    Generates image embedding using multimodalembedding@001.
+    Generates image embedding using the configured multimodal embedding model.
     """
     vertexai.init(project=PROJECT_ID, location=LOCATION)
     # Ignore deprecation warning by loading model
-    model = MultiModalEmbeddingModel.from_pretrained("multimodalembedding@001")
+    model_name = os.environ.get("VISUAL_EMBEDDING_MODEL", "multimodalembedding@001")
+    model = MultiModalEmbeddingModel.from_pretrained(model_name)
     image = Image.load_from_file(file_path)
     embeddings = model.get_embeddings(image=image)
     if not embeddings or not embeddings.image_embedding:
-        raise Exception("Failed to retrieve multimodal image embeddings from API")
+        raise Exception(f"Failed to retrieve multimodal image embeddings from API using model {model_name}")
     return embeddings.image_embedding
 
 def dot_product(v1, v2):

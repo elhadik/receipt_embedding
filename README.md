@@ -1,6 +1,6 @@
 # Coke Receipt Validator & Anti-Cheating Console
 
-A modern, secure web application designed to automate the validation of financial receipts. It combines document structure extraction via **Gemini 3.5 Flash**, arithmetic verification, and anti-cheating duplicate detection using **Multimodal Image Embeddings** via Google Cloud Vertex AI.
+A modern, secure web application designed to automate the validation of financial receipts. It combines document structure extraction via **Gemini 2.5 Flash**, arithmetic verification, and anti-cheating duplicate detection using **Multimodal Image Embeddings** via Google Cloud Vertex AI.
 
 ![Console Dashboard](./static/images/dashboard_screenshot.png)
 
@@ -31,7 +31,7 @@ The sequence diagram below shows the end-to-end processing lifecycle of an uploa
 
 ## Key Features
 
-1. **AI OCR Data Extraction**: Uses **Gemini 3.5 Flash** to extract merchant data, transaction date/time, line items (quantity, unit price, total), financials (subtotal, tax, tip, discount, total), and payment method into a structured JSON schema.
+1. **AI OCR Data Extraction**: Uses **Gemini 2.5 Flash** to extract merchant data, transaction date/time, line items (quantity, unit price, total), financials (subtotal, tax, tip, discount, total), and payment method into a structured JSON schema.
 2. **Arithmetic Validator**: Programs an audit check comparing the sum of line items to the subtotal, and validates the transaction balance:
    $$\text{Grand Total} = \text{Subtotal} + \text{Tax} + \text{Tip} - \text{Discount}$$
    *(discrepancies exceeding \$0.01 raise an audit alert)*
