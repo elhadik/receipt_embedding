@@ -17,18 +17,7 @@ A modern, secure web application designed to automate the validation of financia
 
 The application implements a Backend-for-Frontend (BFF) security pattern, ensuring all sensitive keys, files, and AI processing details remain protected on the server.
 
-```mermaid
-graph TD
-    Client[Browser Frontend] -->|Upload File + CSRF| BFF[Flask Backend BFF]
-    BFF -->|OCR Request| Gemini[Gemini 2.5 Flash API]
-    Gemini -->|Parsed JSON| BFF
-    BFF -->|Verify Arithmetic| Math[Math Validator Engine]
-    BFF -->|Generate Image Signature| Embedding[Vertex AI Multimodal Embedding]
-    Embedding -->|1408d Vector| BFF
-    BFF -->|Similarity Matching| DupChecker[Duplicate Checker]
-    DupChecker <--->|Read/Write Vectors| CSV[(submissions.csv)]
-    BFF -->|JSON Validation Report| Client
-```
+![System Architecture](./static/images/architecture_diagram.png)
 
 ---
 
@@ -36,47 +25,7 @@ graph TD
 
 The sequence diagram below shows the end-to-end processing lifecycle of an uploaded receipt:
 
-```mermaid
-sequenceDiagram
-    autonumber
-    actor User as User Browser
-    participant Server as Flask Server (app.py)
-    participant Gemini as Gemini 2.5 Flash
-    participant Math as Math Validator
-    participant Vertex as Vertex AI Embedding
-    participant DB as CSV Database (submissions.csv)
-
-    User->>Server: POST /upload (File + CSRF Header)
-    Note over Server: Validate CSRF, File Extension, & Size
-    Server->>Server: Save file temporarily as random UUID
-    Server->>Gemini: generate_content(Image + Prompt)
-    Gemini-->>Server: JSON (is_receipt, receipt_data, etc.)
-    
-    alt is_receipt is false
-        Server-->>User: HTTP 200 (Status: Rejected)
-    else is_receipt is true
-        Server->>Math: validate_math(receipt_data)
-        Math-->>Server: (is_valid, error_messages)
-        
-        alt file is PDF
-            Server->>Vertex: text-embedding-004 (canonical_text)
-            Vertex-->>Server: Text Vector (768d)
-        else file is Image
-            Server->>Vertex: multimodalembedding@001 (image_file)
-            Vertex-->>Server: Image Vector (1408d)
-        end
-        
-        Server->>DB: check_duplicate(current_vector)
-        DB-->>Server: is_duplicate (True/False, max_similarity, matched_details)
-        
-        alt is_duplicate is true or is_valid is false
-            Server-->>User: HTTP 200 (Status: Rejected + Reasons)
-        else Approved
-            Server->>DB: save_submission(metadata + vector)
-            Server-->>User: HTTP 200 (Status: Approved)
-        end
-    end
-```
+![Transaction Verification Flow](./static/images/sequence_diagram.png)
 
 ---
 
