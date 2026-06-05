@@ -1,0 +1,240 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Coke Receipt Validator</title>
+    <!-- Outfit Google Font -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <style>
+        /* Inlined CSS template configuration or we load style.css */
+    </style>
+    <link rel="stylesheet" href="/static/css/style.css">
+    <!-- CSRF Token Meta -->
+    <meta name="csrf-token" content="{{ csrf_token }}">
+</head>
+<body>
+    <div class="app-container">
+        <!-- Sidebar Navigation -->
+        <aside class="sidebar">
+            <div class="logo-area">
+                <i data-lucide="sparkles" class="logo-icon"></i>
+                <span class="logo-text">CokeReceipt</span>
+            </div>
+            <nav class="nav-menu">
+                <a href="#" class="nav-item active" id="nav-dashboard">
+                    <i data-lucide="layout-dashboard"></i>
+                    <span>Dashboard</span>
+                </a>
+                <a href="#history-section" class="nav-item" id="nav-history">
+                    <i data-lucide="history"></i>
+                    <span>History Log</span>
+                </a>
+            </nav>
+            <div class="sidebar-footer">
+                <div class="version">v1.0.0</div>
+            </div>
+        </aside>
+
+        <!-- Main Content Area -->
+        <main class="main-content">
+            <!-- Top bar -->
+            <header class="top-bar">
+                <h1>Receipt Verification Console</h1>
+                <div class="system-status">
+                    <span class="status-indicator online"></span>
+                    <span class="status-label">Vertex AI Connected</span>
+                </div>
+            </header>
+
+            <!-- Dashboard Grid -->
+            <div class="dashboard-grid">
+                <!-- Left Column: Upload and Verification -->
+                <div class="left-column">
+                    <!-- Drop Zone -->
+                    <div class="card upload-card">
+                        <div class="drop-zone" id="drop-zone">
+                            <div class="drop-zone-content">
+                                <div class="upload-icon-container">
+                                    <i data-lucide="cloud-upload" class="upload-icon"></i>
+                                </div>
+                                <h3>Upload receipt image or PDF</h3>
+                                <p class="upload-hint">Drag & drop your file here, or click to browse</p>
+                                <p class="upload-limits">Supports PNG, JPG, JPEG, PDF (max 5MB)</p>
+                                <input type="file" id="file-input" accept=".png, .jpg, .jpeg, .pdf" hidden>
+                            </div>
+                            <!-- Scanning Animation Overlay -->
+                            <div class="scanner-overlay" id="scanner-overlay">
+                                <div class="scanner-box">
+                                    <div class="scanner-line"></div>
+                                    <i data-lucide="scan" class="scanning-icon"></i>
+                                </div>
+                                <h3>Analyzing Receipt...</h3>
+                                <p>Running OCR, arithmetic audits, and duplicate embedding scans</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Validation Summary Card -->
+                    <div class="card result-card hidden" id="result-card">
+                        <div class="result-header">
+                            <h2>Verification Report</h2>
+                            <div id="status-badge" class="badge">APPROVED</div>
+                        </div>
+                        
+                        <!-- Status explanation -->
+                        <div class="status-reason-box" id="status-reason-box">
+                            <p id="status-reason-text">All checks passed successfully.</p>
+                        </div>
+
+                        <!-- Summary KPIs -->
+                        <div class="kpi-grid">
+                            <div class="kpi-card">
+                                <span class="kpi-title">Merchant</span>
+                                <span class="kpi-val" id="kpi-merchant">-</span>
+                            </div>
+                            <div class="kpi-card">
+                                <span class="kpi-title">Date & Time</span>
+                                <span class="kpi-val" id="kpi-datetime">-</span>
+                            </div>
+                            <div class="kpi-card">
+                                <span class="kpi-title">Total Price</span>
+                                <span class="kpi-val highlight" id="kpi-total">-</span>
+                            </div>
+                        </div>
+
+                        <!-- Detailed Validation Checks -->
+                        <div class="checks-section">
+                            <h3>Audit Checklists</h3>
+                            <ul class="checklist">
+                                <li id="check-is-receipt">
+                                    <i data-lucide="check-circle" class="check-icon success"></i>
+                                    <span>Receipt Validation Check</span>
+                                    <span class="check-detail" id="check-is-receipt-detail">Verified receipt format.</span>
+                                </li>
+                                <li id="check-math">
+                                    <i data-lucide="check-circle" class="check-icon success"></i>
+                                    <span>Arithmetic Integrity Check</span>
+                                    <span class="check-detail" id="check-math-detail">All calculations verified.</span>
+                                </li>
+                                <li id="check-duplicate">
+                                    <i data-lucide="check-circle" class="check-icon success"></i>
+                                    <span>Anti-Cheating Duplicate Check</span>
+                                    <span class="check-detail" id="check-duplicate-detail">Receipt is unique.</span>
+                                </li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Right Column: Extracted Receipt Data Details -->
+                <div class="right-column">
+                    <div class="card details-card hidden" id="details-card">
+                        <h2>Extracted Receipt Details</h2>
+                        
+                        <div class="details-section">
+                            <h3>Line Items</h3>
+                            <div class="table-container">
+                                <table id="line-items-table">
+                                    <thead>
+                                        <tr>
+                                            <th>Description</th>
+                                            <th class="text-right">Qty</th>
+                                            <th class="text-right">Unit Price</th>
+                                            <th class="text-right">Total</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="line-items-body">
+                                        <!-- Dynamic JS content -->
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+
+                        <div class="details-section">
+                            <h3>Financial Breakdown</h3>
+                            <div class="financials-breakdown">
+                                <div class="fin-row">
+                                    <span>Subtotal</span>
+                                    <span id="fin-subtotal">-</span>
+                                </div>
+                                <div class="fin-row">
+                                    <span>Tax</span>
+                                    <span id="fin-tax">-</span>
+                                </div>
+                                <div class="fin-row">
+                                    <span>Tip</span>
+                                    <span id="fin-tip">-</span>
+                                </div>
+                                <div class="fin-row">
+                                    <span>Discount</span>
+                                    <span id="fin-discount">-</span>
+                                </div>
+                                <div class="fin-row total">
+                                    <span>Grand Total</span>
+                                    <span id="fin-total">-</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Extra Metadata -->
+                        <div class="details-section">
+                            <h3>Metadata</h3>
+                            <div class="metadata-grid">
+                                <div class="meta-item">
+                                    <span class="meta-label">Confidence Score</span>
+                                    <span class="meta-value" id="meta-confidence">-</span>
+                                </div>
+                                <div class="meta-item">
+                                    <span class="meta-label">Payment Method</span>
+                                    <span class="meta-value" id="meta-payment">-</span>
+                                </div>
+                                <div class="meta-item">
+                                    <span class="meta-label">Receipt Number</span>
+                                    <span class="meta-value" id="meta-number">-</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- History Section -->
+            <section class="card history-section" id="history-section">
+                <div class="section-header">
+                    <h2>Submission History Log</h2>
+                    <p>Audit trail of all processed receipts and their duplicate signatures.</p>
+                </div>
+                <div class="table-container">
+                    <table id="history-table">
+                        <thead>
+                            <tr>
+                                <th>Timestamp</th>
+                                <th>File Name</th>
+                                <th>Merchant</th>
+                                <th>Receipt Date</th>
+                                <th class="text-right">Total Price</th>
+                                <th>Status</th>
+                            </tr>
+                        </thead>
+                        <tbody id="history-body">
+                            <!-- Dynamic content -->
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <!-- Initialize Lucide Icons -->
+    <script>
+        lucide.createIcons();
+    </script>
+    <!-- JS files -->
+    <script src="/static/js/main.js"></script>
+</body>
+</html>
