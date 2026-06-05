@@ -88,7 +88,7 @@ def upload_file():
         prompt = """You are an expert document processing AI specialized in receipt OCR and data extraction. Your task is to analyze the provided image, determine if it is a financial receipt, and extract its data into a structured JSON format.
 
 ### Instructions:
-1. **Receipt Validation**: First, evaluate whether the image is a receipt, invoice, or bill. Set the `is_receipt` boolean accordingly.
+1. **Receipt Validation**: Evaluate whether the image is a valid, legible receipt, invoice, or bill. Set `is_receipt` to true ONLY if the document is readable. If vital portions of the document (such as line item descriptions, merchant name, or transaction totals) are censored, blacked out, heavily blurred, or unreadable, set `is_receipt` to false and provide a `validation_message` explaining the issue (e.g. "Receipt details are censored or unreadable").
 2. **Data Extraction**: If `is_receipt` is true, extract all available fields accurately. Do not assume or hallucinate values. If a field is missing or unreadable, return `null`.
 3. **Line Items**: Extract every item line by line, including description, quantity, unit price, and total price if present.
 4. **Confidence Score**: Provide an overall confidence score between 0.0 (completely uncertain/unreadable) and 1.0 (perfectly clear and verified) based on the legibility of the text and data completeness.
@@ -125,6 +125,7 @@ def upload_file():
       "tax_amount": float or null,
       "tip_amount": float or null,
       "discount_amount": float or null,
+      "fees_amount": float or null, // Sum of additional service charges, delivery fees, convenience fees, refrigeration fees, shipping, etc.
       "total": float or null
     },
     "payment_method": {
@@ -207,6 +208,31 @@ def get_submission_history():
         return jsonify(history)
     except Exception as e:
         return jsonify({'error': str(e)}), 500
+
+@app.route('/clear_database', methods=['POST'])
+def clear_database():
+    try:
+        csrf_token = request.headers.get('X-CSRF-Token')
+        if not csrf_token or csrf_token != session.get('csrf_token'):
+            return jsonify({'error': 'CSRF token validation failed.'}), 400
+            
+        duplicate_checker.clear_database()
+        
+        # Clear files in the uploads folder
+        upload_folder = app.config['UPLOAD_FOLDER']
+        if os.path.exists(upload_folder):
+            for filename in os.listdir(upload_folder):
+                file_path = os.path.join(upload_folder, filename)
+                try:
+                    if os.path.isfile(file_path) or os.path.islink(file_path):
+                        os.unlink(file_path)
+                except Exception as e:
+                    print(f'Failed to delete {file_path}. Reason: {e}')
+                    
+        return jsonify({'message': 'Local database and uploaded files cleared successfully.'})
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
 
 @app.after_request
 def add_security_headers(response):

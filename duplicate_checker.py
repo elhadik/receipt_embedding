@@ -104,6 +104,13 @@ class DuplicateChecker:
                     "id", "timestamp", "merchant_name", "date", 
                     "total", "file_name", "canonical_text", "embedding_type", "embedding"
                 ])
+    def clear_database(self):
+        with open(self.db_path, mode='w', newline='', encoding='utf-8') as f:
+            writer = csv.writer(f)
+            writer.writerow([
+                "id", "timestamp", "merchant_name", "date", 
+                "total", "file_name", "canonical_text", "embedding_type", "embedding"
+            ])
 
     def check_duplicate(self, data, file_path):
         """

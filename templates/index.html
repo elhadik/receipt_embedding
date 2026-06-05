@@ -174,6 +174,10 @@
                                     <span>Discount</span>
                                     <span id="fin-discount">-</span>
                                 </div>
+                                <div class="fin-row">
+                                    <span>Fees</span>
+                                    <span id="fin-fees">-</span>
+                                </div>
                                 <div class="fin-row total">
                                     <span>Grand Total</span>
                                     <span id="fin-total">-</span>
@@ -206,8 +210,14 @@
             <!-- History Section -->
             <section class="card history-section" id="history-section">
                 <div class="section-header">
-                    <h2>Submission History Log</h2>
-                    <p>Audit trail of all processed receipts and their duplicate signatures.</p>
+                    <div>
+                        <h2>Submission History Log</h2>
+                        <p>Audit trail of all processed receipts and their duplicate signatures.</p>
+                    </div>
+                    <button class="btn btn-danger" id="clear-db-btn">
+                        <i data-lucide="trash-2"></i>
+                        <span>Clear Database</span>
+                    </button>
                 </div>
                 <div class="table-container">
                     <table id="history-table">

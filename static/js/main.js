@@ -30,6 +30,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const finTax = document.getElementById("fin-tax");
     const finTip = document.getElementById("fin-tip");
     const finDiscount = document.getElementById("fin-discount");
+    const finFees = document.getElementById("fin-fees");
     const finTotal = document.getElementById("fin-total");
     
     // Metadata
@@ -239,6 +240,7 @@ document.addEventListener("DOMContentLoaded", () => {
             finTax.textContent = financials.tax_amount !== null ? `${currency} ${parseFloat(financials.tax_amount).toFixed(2)}` : "-";
             finTip.textContent = financials.tip_amount !== null ? `${currency} ${parseFloat(financials.tip_amount).toFixed(2)}` : "-";
             finDiscount.textContent = financials.discount_amount !== null ? `${currency} ${parseFloat(financials.discount_amount).toFixed(2)}` : "-";
+            finFees.textContent = financials.fees_amount !== null ? `${currency} ${parseFloat(financials.fees_amount).toFixed(2)}` : "-";
             finTotal.textContent = financials.total !== null ? `${currency} ${parseFloat(financials.total).toFixed(2)}` : "-";
 
             // Populate Extra Metadata
@@ -327,4 +329,38 @@ document.addEventListener("DOMContentLoaded", () => {
             historyBody.appendChild(tr);
         });
     }
+
+    const clearDbBtn = document.getElementById("clear-db-btn");
+    if (clearDbBtn) {
+        clearDbBtn.addEventListener("click", () => {
+            if (confirm("Are you sure you want to clear the local submissions database and delete all uploaded files? This action cannot be undone.")) {
+                const csrfTokenMeta = document.querySelector("meta[name='csrf-token']");
+                const csrfToken = csrfTokenMeta ? csrfTokenMeta.getAttribute("content") : "";
+                
+                fetch("/clear_database", {
+                    method: "POST",
+                    headers: {
+                        "X-CSRF-Token": csrfToken
+                    }
+                })
+                .then(response => {
+                    if (!response.ok) {
+                        return response.json().then(err => { throw new Error(err.error || "Failed to clear database"); });
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    alert(data.message || "Database cleared successfully.");
+                    resultCard.classList.add("hidden");
+                    detailsCard.classList.add("hidden");
+                    loadHistory();
+                })
+                .catch(err => {
+                    console.error("Error clearing database:", err);
+                    alert("Error: " + err.message);
+                });
+            }
+        });
+    }
 });
+

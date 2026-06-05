@@ -29,6 +29,32 @@ The sequence diagram below shows the end-to-end processing lifecycle of an uploa
 
 ---
 
+## Detailed Verification Pipeline
+
+The backend executes a rigorous three-step verification pipeline to audit every transaction upload:
+
+### 1. Document Format & Legibility Check (Gemini 2.5 Flash)
+- **Censorship / Blur Detection**: The prompt instructs Gemini to verify if the receipt details are readable. If key transaction areas (merchant names, totals, or line item descriptions) are censored, blacked out, heavily blurred, or edited, the model sets `is_receipt` to `false` and details the issue in `validation_message` (e.g. `"Receipt details are censored or unreadable"`).
+- **Structured JSON Extraction**: If legible, data is structured into a strict JSON schema including merchant details, transaction timestamps, currency, line items (quantity, unit_price, total_price), and financials (subtotal, tax_amount, tip_amount, discount_amount, fees_amount, total).
+
+### 2. Arithmetic Integrity Audit
+- **Line Item Summation Check**: Re-calculates the sum of all individual line item totals and verifies it against the extracted subtotal:
+  $$\sum_{i} (\text{quantity}_i \times \text{unit\_price}_i) = \text{subtotal}$$
+- **Balance Audit**: Audits the total transaction balance using the standard formula, taking into account any added delivery, service, or refrigeration fees:
+  $$\text{Subtotal} + \text{Tax} + \text{Tip} + \text{Fees} - \text{Discount} = \text{Total}$$
+- **Rounding Tolerance**: A strict threshold of exactly **$0.01** is allowed for rounding discrepancies. If calculation errors exceed this limit, the submission is rejected.
+
+### 3. Anti-Cheating Uniqueness Check (Multimodal Similarity)
+- **Multimodal Visual Signatures**: For image uploads (`.png`, `.jpg`, `.jpeg`), the server calls Google Cloud's **Vertex AI Multimodal Vision Embedding** model (`multimodalembedding@001`). This constructs a **1408-dimensional dense visual vector** representing details like visual layout, document folds, lighting, and angles to detect if a physical receipt has been photographed multiple times to commit fraud.
+- **Canonical Text Signatures**: For PDFs, the server runs a fallback text embedding using **`text-embedding-004`** on a sorted, normalized canonical description of the receipt metadata.
+- **Cosine Similarity Matching**: Computes the cosine angle between the current upload's vector and all historical signatures stored in `submissions.csv`:
+  $$\text{Cosine Similarity}(A, B) = \frac{A \cdot B}{\|A\| \|B\|}$$
+- **Audit Reject Thresholds**: Rejects the submission as duplicate if:
+  - Visual similarity meets or exceeds **0.94**.
+  - Text similarity meets or exceeds **0.97**.
+
+---
+
 ## Key Features
 
 1. **AI OCR Data Extraction**: Uses **Gemini 2.5 Flash** to extract merchant data, transaction date/time, line items (quantity, unit price, total), financials (subtotal, tax, tip, discount, total), and payment method into a structured JSON schema.

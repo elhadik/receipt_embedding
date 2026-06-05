@@ -67,6 +67,7 @@ def validate_math(data):
     tax = financials.get("tax_amount") or 0.0
     tip = financials.get("tip_amount") or 0.0
     discount = financials.get("discount_amount") or 0.0
+    fees = financials.get("fees_amount") or 0.0
     total = financials.get("total")
     
     try:
@@ -86,8 +87,14 @@ def validate_math(data):
     except (ValueError, TypeError):
         errors.append(f"Invalid discount format: {discount}")
         discount_val = 0.0
+
+    try:
+        fees_val = float(fees)
+    except (ValueError, TypeError):
+        errors.append(f"Invalid fees format: {fees}")
+        fees_val = 0.0
         
-    expected_total = receipt_subtotal_val + tax_val + tip_val - discount_val
+    expected_total = receipt_subtotal_val + tax_val + tip_val + fees_val - discount_val
     
     if total is not None:
         try:
