@@ -8,9 +8,14 @@ from google import genai
 import vertexai
 from vertexai.vision_models import MultiModalEmbeddingModel, Image
 
+from dotenv import load_dotenv
+
+# Load env variables
+load_dotenv()
+
 # Setup Project Constants
-PROJECT_ID = "shade-sandbox"
-LOCATION = "us-central1"
+PROJECT_ID = os.environ.get("PROJECT_ID", "shade-sandbox")
+LOCATION = os.environ.get("LOCATION", "us-central1")
 
 def get_genai_client():
     return genai.Client(vertexai=True, project=PROJECT_ID, location=LOCATION)

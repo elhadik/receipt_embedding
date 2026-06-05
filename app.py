@@ -8,6 +8,11 @@ from google.genai import types
 from math_validator import validate_math
 from duplicate_checker import DuplicateChecker
 
+from dotenv import load_dotenv
+
+# Load env variables
+load_dotenv()
+
 app = Flask(__name__, template_folder='templates', static_folder='static')
 app.secret_key = secrets.token_hex(32)
 
@@ -21,8 +26,8 @@ ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'pdf'}
 # Initialize services
 duplicate_checker = DuplicateChecker()
 
-PROJECT_ID = "shade-sandbox"
-LOCATION = "us-central1"
+PROJECT_ID = os.environ.get("PROJECT_ID", "shade-sandbox")
+LOCATION = os.environ.get("LOCATION", "us-central1")
 
 def get_genai_client():
     return genai.Client(vertexai=True, project=PROJECT_ID, location=LOCATION)
@@ -218,4 +223,6 @@ def add_security_headers(response):
 
 if __name__ == '__main__':
     # Listen only on localhost for testing security
-    app.run(host='127.0.0.1', port=5000, debug=True)
+    host = os.environ.get("HOST", "127.0.0.1")
+    port = int(os.environ.get("PORT", 5000))
+    app.run(host=host, port=port, debug=True)
