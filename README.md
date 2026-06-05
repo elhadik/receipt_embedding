@@ -2,6 +2,8 @@
 
 A modern, secure web application designed to automate the validation of financial receipts. It combines document structure extraction via **Gemini 2.5 Flash**, arithmetic verification, and anti-cheating duplicate detection using **Multimodal Image Embeddings** via Google Cloud Vertex AI.
 
+![Console Dashboard](./static/images/dashboard_screenshot.png)
+
 ---
 
 ## Supported File Formats
